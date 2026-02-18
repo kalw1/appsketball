@@ -12,6 +12,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'appsketball.',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -104,18 +105,40 @@ class _MyHomePageState extends State<MyHomePage> {
           // wireframe for each widget.
           mainAxisAlignment: .center,
           children: [
-            const Text('You have pushed the button this many times:'),
             Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+              'Welcome to appsketball.',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            Image.asset(
+              'assets/basketball-image.jpg',
+              width: 100,
+              height: 100,
+            ),
+            Padding(padding: EdgeInsets.only(bottom: 20)),
+            ElevatedButton(
+              onPressed: () {
+                //Navigator.push(context, MaterialPageRoute(builder: (context) => const StatsPage()));
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.deepPurple,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                padding: EdgeInsets.symmetric(
+                  horizontal: 95,
+                  vertical: 12,
+                ),
+              ),
+              child: Text(
+                'New Game',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                ),
+              ),
             ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
       ),
     );
   }
