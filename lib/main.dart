@@ -1,6 +1,9 @@
+import 'package:appsketball/start_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-void main() {
+void main() async {
+  await Hive.initFlutter();
   runApp(const MyApp());
 }
 
@@ -55,19 +58,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
+  
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -117,7 +108,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Padding(padding: EdgeInsets.only(bottom: 20)),
             ElevatedButton(
               onPressed: () {
-                //Navigator.push(context, MaterialPageRoute(builder: (context) => const StatsPage()));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const StartScreen()));
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.deepPurple,
