@@ -1,3 +1,4 @@
+import 'package:appsketball/widgets/list_button.dart';
 import 'package:flutter/material.dart';
 
 class StartScreen extends StatefulWidget {
@@ -14,8 +15,32 @@ class _StartScreenState extends State<StartScreen> {
       appBar: AppBar(
         title: const Text('Configure Game Settings'),
       ),
-      body: const Center(
-        child: Text('Welcome to the Start Screen!'),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ListButton(
+              text: 'Teams',
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const StartScreen()));
+              }
+            ),
+            SizedBox(height: 20),
+            ListButton(
+              text: 'Quarters',
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const StartScreen()));
+              }
+            ),
+            SizedBox(height: 20),
+            ListButton(
+              text: 'Start Game',
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const StartScreen()));
+              }
+            ),
+          ],
+        ),
       ),
     );
   }
