@@ -1,9 +1,10 @@
 import 'package:appsketball/start_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:appsketball/services/hive_service.dart';
 
 void main() async {
-  await Hive.initFlutter();
+  HiveService hiveService = HiveService();
+  await hiveService.init();
   runApp(const MyApp());
 }
 

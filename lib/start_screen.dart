@@ -1,5 +1,7 @@
 import 'package:appsketball/widgets/list_button.dart';
 import 'package:flutter/material.dart';
+import 'package:appsketball/screens/game_screen.dart';
+import 'package:flutter/services.dart';
 
 class StartScreen extends StatefulWidget {
   const StartScreen({super.key});
@@ -8,12 +10,14 @@ class StartScreen extends StatefulWidget {
   State<StartScreen> createState() => _StartScreenState();
 }
 
-class _StartScreenState extends State<StartScreen> {
-  @override
+class _StartScreenState extends State<StartScreen> {@override
   Widget build(BuildContext context) {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Configure Game Settings'),
+        title: const Text('New Game'),
       ),
       body: Center(
         child: Column(
@@ -27,7 +31,7 @@ class _StartScreenState extends State<StartScreen> {
             ),
             SizedBox(height: 20),
             ListButton(
-              text: 'Quarters',
+              text: 'Game Settings',
               onPressed: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => const StartScreen()));
               }
@@ -36,7 +40,7 @@ class _StartScreenState extends State<StartScreen> {
             ListButton(
               text: 'Start Game',
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const StartScreen()));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const GameScreen()));
               }
             ),
           ],
