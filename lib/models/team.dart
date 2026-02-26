@@ -16,7 +16,7 @@ class Team {
 
   Team({
     required this.name,
-    required this.score,
+    this.score = 0,
     required this.players,
   });
 }
