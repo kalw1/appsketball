@@ -26,14 +26,14 @@ class _StartScreenState extends State<StartScreen> {@override
             ListButton(
               text: 'Teams',
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const StartScreen()));
+                //Navigator.push(context, MaterialPageRoute(builder: (context) => const StartScreen()));
               }
             ),
             SizedBox(height: 20),
             ListButton(
               text: 'Game Settings',
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const StartScreen()));
+                //Navigator.push(context, MaterialPageRoute(builder: (context) => const StartScreen()));
               }
             ),
             SizedBox(height: 20),

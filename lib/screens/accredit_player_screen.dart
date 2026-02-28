@@ -4,14 +4,18 @@ import 'package:appsketball/widgets/action_button.dart';
 
 class AccreditPlayerScreen extends StatefulWidget {
   final Team teamA;
-  final Team teamB;
+  final Team? teamB;
   final String appBarText;
+  final Color buttonColor;
+  final bool showNoOneButton;
 
   const AccreditPlayerScreen({
     super.key,
     required this.teamA,
-    required this.teamB,
+    this.teamB,
     this.appBarText = 'Select Player',
+    this.buttonColor = Colors.blue,
+    this.showNoOneButton = false,
   });
 
   @override
@@ -20,7 +24,7 @@ class AccreditPlayerScreen extends StatefulWidget {
 
 class _AccreditPlayerScreenState extends State<AccreditPlayerScreen> {
   Widget? noOneButton() {
-    if (widget.appBarText.contains('assist') || widget.appBarText.contains('rebound')) {
+    if (widget.showNoOneButton) {
       return ActionButton(
         onPressed: () {Navigator.pop(context, null);},
         text: 'No one',
@@ -32,14 +36,14 @@ class _AccreditPlayerScreenState extends State<AccreditPlayerScreen> {
   @override
   Widget build(BuildContext context) {
     Team teamA = widget.teamA;
-    Team teamB = widget.teamB;
+    Team? teamB = widget.teamB;
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.appBarText),
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: teamB == null ? MainAxisAlignment.center : MainAxisAlignment.start,
           children: [
             GridView.count(
               padding: const EdgeInsets.all(16),
@@ -54,14 +58,14 @@ class _AccreditPlayerScreenState extends State<AccreditPlayerScreen> {
                   return ActionButton(
                     onPressed: () {Navigator.pop(context, teamA.players[i]);},
                     text: teamA.players[i].name,
-                    backgroundColor: Colors.blue
+                    backgroundColor: widget.buttonColor
                   );
                 }),
                 if (noOneButton() != null) noOneButton()!,
               ],
             ),
-            SizedBox(height: 200),
-            GridView.count(
+            if (teamB != null) SizedBox(height: 100),
+            if (teamB != null) GridView.count(
               padding: const EdgeInsets.all(16),
               crossAxisCount: 3,
               childAspectRatio: 1,

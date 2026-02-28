@@ -5,11 +5,13 @@ import 'package:appsketball/widgets/list_button.dart';
 class EndOfGameScreen extends StatelessWidget {
   final Team teamA;
   final Team teamB;
+  final bool isEndOfGame;
 
   const EndOfGameScreen({
     super.key,
     required this.teamA,
     required this.teamB,
+    this.isEndOfGame = true,
   });
 
   @override
@@ -18,12 +20,12 @@ class EndOfGameScreen extends StatelessWidget {
     Team teamB = this.teamB;
     return Scaffold(
       appBar: AppBar(
-        title: Text('End of Game'),
+        title: Text(isEndOfGame ? 'End of Game' : 'Game Stats'),
         automaticallyImplyLeading: false,
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Text('${teamA.name} Score: ${teamA.score}', style: TextStyle(fontSize: 24)),
             Table(
@@ -74,9 +76,8 @@ class EndOfGameScreen extends StatelessWidget {
             ),
             SizedBox(height: 16),
             ListButton(
-              text: 'Back to Home',
+              text: isEndOfGame ? 'Close Game' : 'Back',
               onPressed: () {
-                Navigator.pop(context);
                 Navigator.pop(context);
               },
             ),

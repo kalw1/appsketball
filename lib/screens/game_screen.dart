@@ -1,12 +1,13 @@
+import 'dart:async';
 import 'package:appsketball/widgets/action_button.dart';
 import 'package:appsketball/widgets/list_button.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:appsketball/models/player.dart';
 import 'package:appsketball/models/team.dart';
 import 'package:appsketball/services/player_game_service.dart';
 import 'package:appsketball/screens/accredit_player_screen.dart';
 import 'package:appsketball/screens/end_of_game.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -36,14 +37,14 @@ class _GameScreenState extends State<GameScreen> {
 
   PlayerGameService playerGameService = PlayerGameService();
 
-  Future<Player?> navigateToAccreditPlayerScreen(Team team1, Team team2, String appBarText) async {
+  Future<Player?> navigateToAccreditPlayerScreen(Team team1, Team? team2, String appBarText, {bool showNoOneButton = false, Color buttonColor = Colors.blue}) async {
     if (appBarText.isNotEmpty) {
       appBarText += ' - Select Player';
     }
     return await Navigator.push<Player>(
       context,
       MaterialPageRoute(
-        builder: (context) => AccreditPlayerScreen(teamA: team1, teamB: team2, appBarText: appBarText),
+        builder: (context) => AccreditPlayerScreen(teamA: team1, teamB: team2, appBarText: appBarText, showNoOneButton: showNoOneButton, buttonColor: buttonColor),
       ),
     );
   }
@@ -54,6 +55,53 @@ class _GameScreenState extends State<GameScreen> {
     } else {
       return teamB;
     }
+  }
+
+  Team getPlayerOppositeTeam(Player player) {
+    if (teamA.players.contains(player)) {
+      return teamB;
+    } else {
+      return teamA;
+    }
+  }
+
+  Duration quarterDuration = Duration(seconds: 5);
+
+  Duration currentDuration = Duration(seconds: 5);
+
+  bool isGamePaused = true;
+
+  late Timer timer;
+
+  final AudioPlayer audioPlayer = AudioPlayer();
+
+  void _startTimer() {
+    setState(() {
+      isGamePaused = false;
+    });
+    if (currentDuration <= Duration.zero) {
+      setState(() {
+        currentDuration = Duration(seconds: quarterDuration.inSeconds);
+      });
+    }
+    timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      setState(() {
+        if (currentDuration > Duration.zero) {
+          currentDuration -= Duration(seconds: 1);
+        } else {
+          audioPlayer.play(AssetSource('buzzer.mp3'), volume: 1.0);
+          timer.cancel();
+          isGamePaused = true;
+        }
+      });
+    });
+  }
+
+  void _stopTimer() {
+    setState(() {
+      isGamePaused = true;
+    });
+    timer.cancel();
   }
   
   @override
@@ -67,16 +115,28 @@ class _GameScreenState extends State<GameScreen> {
       backgroundColor: bgColor,
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
+            SizedBox(height: 20),
             Text('${teamA.name} - ${teamB.name}', style: TextStyle(fontSize: 24)),
             Text('${teamA.score} - ${teamB.score}', style: TextStyle(fontSize: 32)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("${currentDuration.inMinutes}:${(currentDuration.inSeconds % 60).toString().padLeft(2, '0')}", style: TextStyle(fontSize: 32)),
+                SizedBox(width: 20),
+                ElevatedButton(
+                  onPressed: isGamePaused ? _startTimer : _stopTimer,
+                  child: Text(isGamePaused ? "Start" : "Pause"),
+                ),
+              ],
+            ),
             GridView.count(
               padding: const EdgeInsets.all(16),
               crossAxisCount: 3,
               childAspectRatio: 1,
               crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
+              mainAxisSpacing: 5,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               children: [
@@ -84,14 +144,16 @@ class _GameScreenState extends State<GameScreen> {
                   text: '2 Pointer Made',
                   onPressed: () async {
                     Player? selectedPlayer = await navigateToAccreditPlayerScreen(teamA, teamB, '2 Pointer Made');
-                    Player? assister = await navigateToAccreditPlayerScreen(teamA, teamB, 'Who assisted?');
 
                     if (selectedPlayer != null) {
-                      playerGameService.recordFieldGoal(getPlayerTeam(selectedPlayer), selectedPlayer, true);
+                      Team playerTeam = getPlayerTeam(selectedPlayer);
+                      playerGameService.recordFieldGoal(playerTeam, selectedPlayer, true);
+
+                      Player? assister = await navigateToAccreditPlayerScreen(playerTeam, null, 'Who assisted?', showNoOneButton: true, buttonColor: playerTeam == teamA ? Colors.blue : Colors.red);
+                      if (assister != null) {
+                        playerGameService.recordAssist(assister);
+                      }
                       setState(() {});
-                    }
-                    if (assister != null) {
-                      playerGameService.recordAssist(assister);
                     }
                   },
                 ),
@@ -99,14 +161,16 @@ class _GameScreenState extends State<GameScreen> {
                   text: '3 Pointer Made',
                   onPressed: () async{
                     Player? selectedPlayer = await navigateToAccreditPlayerScreen(teamA, teamB, '3 Pointer Made');
-                    Player? assister = await navigateToAccreditPlayerScreen(teamA, teamB, 'Who assisted?');
 
                     if (selectedPlayer != null) {
-                      playerGameService.recordThreePointer(getPlayerTeam(selectedPlayer), selectedPlayer, true);
+                      Team playerTeam = getPlayerTeam(selectedPlayer);
+                      playerGameService.recordThreePointer(playerTeam, selectedPlayer, true);
                       setState(() {});
-                    }
-                    if (assister != null) {
-                      playerGameService.recordAssist(assister);
+
+                      Player? assister = await navigateToAccreditPlayerScreen(playerTeam, null, 'Who assisted?', showNoOneButton: true, buttonColor: playerTeam == teamA ? Colors.blue : Colors.red);
+                      if (assister != null) {
+                        playerGameService.recordAssist(assister);
+                      }
                     }
                   },
                 ),
@@ -114,10 +178,13 @@ class _GameScreenState extends State<GameScreen> {
                   text: 'Steal',
                   onPressed: () async{
                     Player? playerThatStole = await navigateToAccreditPlayerScreen(teamA, teamB, 'Who stole the ball?');
-                    Player? playerThatLostBall = await navigateToAccreditPlayerScreen(teamA, teamB, 'Who lost the ball?');
 
-                    if (playerThatStole != null && playerThatLostBall != null) {
-                      playerGameService.recordSteal(playerThatStole, playerThatLostBall);
+                    if (playerThatStole != null) {
+                      Team playerOppositeTeam = getPlayerOppositeTeam(playerThatStole);
+                      Player? playerThatLostBall = await navigateToAccreditPlayerScreen(playerOppositeTeam, null, 'Who lost the ball?', buttonColor: playerOppositeTeam == teamA ? Colors.blue : Colors.red);
+                      if (playerThatLostBall != null) {
+                        playerGameService.recordSteal(playerThatStole, playerThatLostBall);
+                      }
                     }
                   },
                 ),
@@ -125,12 +192,13 @@ class _GameScreenState extends State<GameScreen> {
                   text: '2 Pointer Missed',
                   onPressed: () async{
                     Player? selectedPlayer = await navigateToAccreditPlayerScreen(teamA, teamB, '2 Pointer Missed');
-                    Player? rebounder = await navigateToAccreditPlayerScreen(teamA, teamB, 'Who got the rebound?');
+                    Player? rebounder = await navigateToAccreditPlayerScreen(teamA, teamB, 'Who got the rebound?', showNoOneButton: true);
 
                     if (selectedPlayer != null) {
-                      playerGameService.recordFieldGoal(getPlayerTeam(selectedPlayer), selectedPlayer, false);
+                      Team playerTeam = getPlayerTeam(selectedPlayer);
+                      playerGameService.recordFieldGoal(playerTeam, selectedPlayer, false);
                       if (rebounder != null) {
-                        playerGameService.recordRebound(rebounder, getPlayerTeam(selectedPlayer) != getPlayerTeam(rebounder));
+                        playerGameService.recordRebound(rebounder, playerTeam != getPlayerTeam(rebounder));
                       }
                     }
                   },
@@ -140,12 +208,13 @@ class _GameScreenState extends State<GameScreen> {
                   text: '3 Pointer Missed',
                   onPressed: () async{
                     Player? selectedPlayer = await navigateToAccreditPlayerScreen(teamA, teamB, '3 Pointer Missed');
-                    Player? rebounder = await navigateToAccreditPlayerScreen(teamA, teamB, 'Who got the rebound?');
+                    Player? rebounder = await navigateToAccreditPlayerScreen(teamA, teamB, 'Who got the rebound?', showNoOneButton: true);
 
                     if (selectedPlayer != null) {
-                      playerGameService.recordThreePointer(getPlayerTeam(selectedPlayer), selectedPlayer, false);
+                      Team playerTeam = getPlayerTeam(selectedPlayer);
+                      playerGameService.recordThreePointer(playerTeam, selectedPlayer, false);
                       if (rebounder != null) {
-                        playerGameService.recordRebound(rebounder, getPlayerTeam(selectedPlayer) != getPlayerTeam(rebounder));
+                        playerGameService.recordRebound(rebounder, playerTeam != getPlayerTeam(rebounder));
                       }
                     }
                   },
@@ -193,17 +262,53 @@ class _GameScreenState extends State<GameScreen> {
                     }
                   },
                 ),
+                SizedBox(),
+                ActionButton(
+                  text: 'View Stats',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EndOfGameScreen(teamA: teamA, teamB: teamB, isEndOfGame: false),
+                      ),
+                    );
+                  },
+                  backgroundColor: Colors.blue,
+                ),
               ],
             ),
-            SizedBox(height: 200),
+            //SizedBox(height: 200),
             ListButton(
               text: 'End Game',
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => EndOfGameScreen(teamA: teamA, teamB: teamB),
-                  ),
+                AlertDialog endGameDialog = AlertDialog(
+                  title: Text('End Game'),
+                  content: Text('Are you sure you want to end the game?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EndOfGameScreen(teamA: teamA, teamB: teamB),
+                          ),
+                        );
+                      },
+                      child: Text('Confirm'),
+                    ),
+                  ],
+                );
+                showDialog(
+                  context: context,
+                  builder: (context) => endGameDialog,
                 );
               },
               backgroundColor: Colors.red,

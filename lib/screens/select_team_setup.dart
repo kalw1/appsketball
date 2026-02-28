@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:appsketball/models/team.dart';
 import 'package:appsketball/widgets/list_button.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 class SelectTeamSetup extends StatefulWidget {
   const SelectTeamSetup({super.key});
